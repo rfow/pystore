@@ -50,12 +50,12 @@ class Collection(object):
     def _list_items_threaded(self, **kwargs):
         self.items = self.list_items(**kwargs)
 
-    def list_items(self, **kwargs):
+    def list_items(self, inc_meta=False, **kwargs):
         dirs = utils.subdirs(utils.make_path(self.datastore, self.collection))
         if not kwargs:
             return set(dirs)
 
-        matched = []
+        matched = {} if inc_meta else []
         for d in dirs:
             meta = utils.read_metadata(utils.make_path(
                 self.datastore, self.collection, d))
@@ -68,9 +68,12 @@ class Collection(object):
                     m += 1
 
             if m == len(kwargs):
-                matched.append(d)
+                if inc_meta:
+                    matched[m] = meta
+                else:
+                    matched.append(d)
 
-        return set(matched)
+        return matched
 
     def item(self, item, snapshot=None, filters=None, columns=None):
         return Item(item, self.datastore, self.collection,
